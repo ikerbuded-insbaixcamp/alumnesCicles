@@ -28,10 +28,14 @@ jobs:
       # 4. Ejecutar migraciones y seeders
       - name: Run migrations and seeders
         run: |
-          php artisan migrate --force
-          php artisan db:seed --force
           php artisan storage:link
           php artisan optimize
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run seeders
+        run: php artisan db:seed --force
 
       # 6. Trigger Laravel Cloud deploy
       - name: Trigger Laravel Cloud deploy
