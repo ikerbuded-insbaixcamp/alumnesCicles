@@ -7,7 +7,33 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # 1. Clonar el repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configurar PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, bcmath, pdo, sqlite, fileinfo
+          coverage: none
+
+      # 3. Instalar dependencias de Composer
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      # 4. Ejecutar migraciones y seeders
+      - name: Run migrations and seeders
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --force
+          php artisan storage:link
+          php artisan optimize
+
+      # 6. Trigger Laravel Cloud deploy
       - name: Trigger Laravel Cloud deploy
         run: |
           curl -X POST "${{ secrets.LARAVEL_CLOUD_DEPLOY_HOOK }}?commit_hash=${{ github.sha }}"
