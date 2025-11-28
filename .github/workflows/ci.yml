@@ -1,0 +1,46 @@
+name: CI - Laravel Tests
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clonar el repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configurar PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, bcmath, pdo, sqlite, fileinfo
+          coverage: none
+
+      # 3. Instalar dependencias de Composer
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist
+
+      # 4. Copiar .env.testing como .env
+      - name: Use testing env
+        run: cp .env.testing .env
+
+      # 5. Ejecutar migraciones usando SQLite en memoria
+      - name: Run migrations
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: php artisan migrate --force
+
+      # 6. Ejecutar tests
+      - name: Run tests
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: php artisan test --no-coverage
